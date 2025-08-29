@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Current Score Scanner</title>
+        <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+        <style>
+            .table td {
+                text-align: right;
+            }
+            .table-borderless > tbody > tr > td,
+            .table-borderless > tbody > tr > th,
+            .table-borderless > tfoot > tr > td,
+            .table-borderless > tfoot > tr > th,
+            .table-borderless > thead > tr > td,
+            .table-borderless > thead > tr > th {
+                border: none;
+            }
+        </style>
+    </head>
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const socket = io(); // Connects to same host/port
+
+        // Listen for updates from the server
+        const handleScoreUpdate = (msg) => {
+            console.log("Received data:", msg.data);
+            // Set up each values
+            tapArray = [msg.data[6], msg.data[4] + msg.data[5] + msg.data[7] + msg.data[8],
+        msg.data[1] + msg.data[2] + msg.data[3] + msg.data[9] + msg.data[10] + msg.data[11],
+        msg.data[0] + msg.data[12], msg.data[13]]
+            holdArray = [msg.data[21], msg.data[19] + msg.data[20] + msg.data[22] + msg.data[23],
+        msg.data[16] + msg.data[17] + msg.data[18] + msg.data[24] + msg.data[25] + msg.data[26],
+        msg.data[15] + msg.data[27], msg.data[28]]
+            slideArray = [
+                msg.data[36],
+                msg.data[34] + msg.data[35] + msg.data[37] + msg.data[38],
+                msg.data[31] + msg.data[32] + msg.data[33] + msg.data[39] + msg.data[40] + msg.data[41],
+                msg.data[30] + msg.data[31],
+                msg.data[32]
+            ]
+            breakArray = [msg.data[51], msg.data[49] + msg.data[50] + msg.data[52] + msg.data[53],
+        msg.data[46] + msg.data[47] + msg.data[48] + msg.data[54] + msg.data[55] + msg.data[56],
+        msg.data[45] + msg.data[57], msg.data[58]]
+            perfectBreakArray = [msg.data[50] + msg.data[52], msg.data[49] + msg.data[53]]
+            greatBreakArray = [msg.data[48] + msg.data[54], msg.data[47] + msg.data[55], msg.data[46] + msg.data[56]]
+            touchArray = [msg.data[66], msg.data[64] + msg.data[65] + msg.data[67] + msg.data[68],
+        msg.data[61] + msg.data[62] + msg.data[63] + msg.data[69] + msg.data[70] + msg.data[71],
+        msg.data[60] + msg.data[72], msg.data[73]]
+            for (let i=1; i<=5; i++) {
+                document.getElementById("tap" + i).textContent = tapArray[i-1]
+                document.getElementById("hold" + i).textContent = holdArray[i-1]
+                document.getElementById("slide" + i).textContent = slideArray[i-1]
+                document.getElementById("touch" + i).textContent = touchArray[i-1]
+            }
+            document.getElementById("break1").innerHTML = breakArray[0]
+            document.getElementById("break2").innerHTML = breakArray[1] + '<br>' + perfectBreakArray
+            document.getElementById("break3").innerHTML = breakArray[2] + '<br>' + greatBreakArray
+            document.getElementById("break4").innerHTML = breakArray[3]
+            document.getElementById("break5").innerHTML = breakArray[4]
+            // document.getElementById("achv-rate").innerHTML = msg.achv
+            if (msg.data === "------") {
+                document.getElementById("warning").textContent =
+                    "Check if your game is running and whether a track is in progress.";
+            }
+            else   {
+            document.getElementById("warning").textContent =
+                    "";
+            }
+        };
+
+        socket.on("score_scanner", handleScoreUpdate);
+
+        // Re-subscribe on reconnection
+        socket.on("connect", () => {
+            socket.emit("score_scanner"); // Request updates again
+        });
+
+        // Log errors
+        socket.on("connect_error", (err) => {
+            console.error("WebSocket error:", err);
+        });
+
+        // Initial subscription
+        socket.emit("score_scanner");
+    });
+    </script>
+    <!-- <body>
+        <table class="table table-borderless" style="width: 40%">
+            <thead>
+                <tr>
+                    <th>
+                        Achievement Rate
+                    </th>
+                </tr>
+            </thead>
+            <tr>
+                <th style="font-size: 36px; text-align: right">
+                    <span id="achv-rate">11.4514%</span>
+                </th>
+            </tr>
+        </table> -->
+        <table class="table table-striped" style="width: 40%">
+            <thead>
+                <tr style="text-align: right">
+                    <th></th>
+                    <th>Critical</th>
+                    <th>Perfect</th>
+                    <th>Great</th>
+                    <th>Good</th>
+                    <th>Miss</th>
+                </tr>
+            </thead>
+            <tr>
+                <th>Tap</th>
+                <td id="tap1"></td>
+                <td id="tap2"></td>
+                <td id="tap3"></td>
+                <td id="tap4"></td>
+                <td id="tap5"></td>
+            </tr>
+            <tr>
+                <th>Hold</th>
+                <td id="hold1"></td>
+                <td id="hold2"></td>
+                <td id="hold3"></td>
+                <td id="hold4"></td>
+                <td id="hold5"></td>
+            </tr>
+            <tr>
+                <th>Slide</th>
+                <td id="slide1"></td>
+                <td id="slide2"></td>
+                <td id="slide3"></td>
+                <td id="slide4"></td>
+                <td id="slide5"></td>
+            </tr>
+            <tr>
+                <th>Touch</th>
+                <td id="touch1"></td>
+                <td id="touch2"></td>
+                <td id="touch3"></td>
+                <td id="touch4"></td>
+                <td id="touch5"></td>
+            </tr>
+            <tr>
+                <th>Break</th>
+                <td id="break1"></td>
+                <td id="break2"></td>
+                <td id="break3"></td>
+                <td id="break4"></td>
+                <td id="break5"></td>
+            </tr>   
+        </table>
+        <p id="achv"></p>
+        <p id="warning"></p>
+    </body>
+
+</html>
